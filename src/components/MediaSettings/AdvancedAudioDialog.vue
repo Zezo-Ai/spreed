@@ -69,7 +69,7 @@ function onClosing(result?: unknown) {
 		updateAudioStream(true)
 
 		if (localMediaModel.getWebRtc()) {
-			if (settingsStore.noiseSuppressionWithModel) {
+			if (settingsStore.noiseSuppressionWithModel !== 'none') {
 				localMediaModel.enableNoiseSuppression()
 			} else {
 				localMediaModel.disableNoiseSuppression()
