@@ -43,11 +43,13 @@ class FederationController extends OCSController {
 	}
 
 	/**
-	 * @return string Either 'json' or 'xml'
-	 * @psalm-return 'json'|'xml'
+	 * @return 'json'|'xml'
 	 */
 	public function getResponseFormat(): string {
-		return $this->request->getFormat() ?? 'xml';
+		return match ($this->request->getFormat()) {
+			'json' => 'json',
+			default => 'xml',
+		};
 	}
 
 	/**
