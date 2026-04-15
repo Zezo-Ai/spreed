@@ -311,7 +311,7 @@ class Manager {
 		$helper->selectRoomsTable($query);
 		$query->from('talk_rooms', 'r')
 			->where($query->expr()->isNotNull('r.active_since'))
-			->andWhere($query->expr()->lte('r.active_since', $query->createNamedParameter($maxActiveSince, IQueryBuilder::PARAM_DATE)))
+			->andWhere($query->expr()->lte('r.active_since', $query->createNamedParameter($maxActiveSince, IQueryBuilder::PARAM_DATETIME_MUTABLE)))
 			->orderBy('r.id', 'ASC');
 		$result = $query->executeQuery();
 
