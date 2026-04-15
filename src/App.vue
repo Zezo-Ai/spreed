@@ -68,6 +68,9 @@ import { signalingKill } from './utils/webrtc/index.js'
 /** Internal handlers for 'joined-conversation' watcher (voice-, breakout- rooms) */
 let unwatchJoinedConversation = undefined
 let watchedJoinedConversationToken = undefined
+/**
+ * Release the listener for joined conversation
+ */
 function stopWatchingJoinedConversation() {
 	unwatchJoinedConversation?.()
 	unwatchJoinedConversation = undefined

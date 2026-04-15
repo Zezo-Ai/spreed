@@ -3,6 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script lang="ts" setup>
+import type { WatchStopHandle } from 'vue'
+
 import { emit } from '@nextcloud/event-bus'
 import { computed, onMounted, onUnmounted, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -15,9 +17,8 @@ import PollViewer from '../components/PollViewer/PollViewer.vue'
 import TopBar from '../components/TopBar/TopBar.vue'
 import { useIsInCall } from '../composables/useIsInCall.js'
 import { useJoinCall } from '../composables/useJoinCall.ts'
+import { watchJoinedConversation } from '../composables/useJoinedConversation.ts'
 import { CALL, CONVERSATION } from '../constants.ts'
-import { EventBus } from '../services/EventBus.ts'
-import SessionStorage from '../services/SessionStorage.js'
 import { useActorStore } from '../stores/actor.ts'
 import { useSettingsStore } from '../stores/settings.ts'
 
@@ -33,6 +34,18 @@ const route = useRoute()
 const actorStore = useActorStore()
 const settingsStore = useSettingsStore()
 
+/** Internal handlers for 'joined-conversation' watcher (direct-call) */
+let unwatchJoinedConversation: WatchStopHandle | undefined
+let watchedJoinedConversationToken: string | undefined
+/**
+ * Release the listener for joined conversation
+ */
+function stopWatchingJoinedConversation() {
+	unwatchJoinedConversation?.()
+	unwatchJoinedConversation = undefined
+	watchedJoinedConversationToken = undefined
+}
+
 const isInLobby = computed(() => store.getters.isInLobby)
 const connectionFailed = computed(() => store.getters.connectionFailed(props.token))
 
@@ -43,6 +56,12 @@ watch(isInLobby, (isInLobby) => {
 			token: props.token,
 			participantIdentifier: actorStore.participantIdentifier,
 		})
+	}
+})
+
+watch(() => props.token, (newToken) => {
+	if (watchedJoinedConversationToken && watchedJoinedConversationToken !== newToken) {
+		stopWatchingJoinedConversation()
 	}
 })
 
@@ -59,7 +78,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-	EventBus.off('joined-conversation')
+	stopWatchingJoinedConversation()
 })
 
 /**
@@ -68,6 +87,8 @@ onUnmounted(() => {
  * @param routeToken token of conversation to join
  */
 function handleDirectCall(routeToken: string) {
+	stopWatchingJoinedConversation()
+
 	const conversation = store.getters.conversation(routeToken)
 	const showRecordingWarning = [
 		CALL.RECORDING.VIDEO_STARTING,
@@ -89,18 +110,11 @@ function handleDirectCall(routeToken: string) {
 		return
 	}
 
-	// Verify that conversation is joined before trying to join the call
-	const currentJoinedToken = SessionStorage.getItem('joined_conversation')
-	if (currentJoinedToken === routeToken) {
-		joinCall(routeToken, { directCall: true })
-	} else {
-		EventBus.once('joined-conversation', async ({ token }) => {
-			if (token === routeToken) {
-				// If the correct conversation joined, proceed
-				joinCall(routeToken, { directCall: true })
-			}
-		})
-	}
+	watchedJoinedConversationToken = routeToken
+	unwatchJoinedConversation = watchJoinedConversation(routeToken, () => {
+		stopWatchingJoinedConversation()
+		void joinCall(routeToken, { directCall: true })
+	}, { immediate: true })
 }
 </script>
 
