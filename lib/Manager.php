@@ -161,7 +161,6 @@ class Manager {
 
 		return new Room(
 			$this,
-			$this->db,
 			$this->dispatcher,
 			$this->timeFactory,
 			(int)$row['r_id'],
