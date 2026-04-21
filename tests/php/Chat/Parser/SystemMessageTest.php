@@ -1204,9 +1204,14 @@ class SystemMessageTest extends TestCase {
 
 	public function testGetFileFromNodeIdForGuest(): void {
 		$room = $this->createMock(Room::class);
+		$room->method('getToken')->willReturn('ROOMTOKEN');
+
+		$shareFolder = $this->createMock(Folder::class);
+		$shareFolder->method('getPath')
+			->willReturn('/alice/files/Talk/Room-ROOMTOKEN/Alice-alice');
 
 		$node = $this->createMock(Node::class);
-		$node->expects($this->exactly(2))
+		$node->expects($this->once())
 			->method('getId')
 			->willReturn(42);
 		$node->expects($this->once())
@@ -1224,6 +1229,9 @@ class SystemMessageTest extends TestCase {
 		$node->expects($this->atLeastOnce())
 			->method('getMimeType')
 			->willReturn('image/jpeg');
+		$node->method('getParent')->willReturn($shareFolder);
+		$node->method('getPath')
+			->willReturn('/alice/files/Talk/Room-ROOMTOKEN/Alice-alice/photo.jpg');
 
 		$this->rootFolder->expects($this->once())
 			->method('getFirstNodeById')
@@ -1232,6 +1240,15 @@ class SystemMessageTest extends TestCase {
 
 		$this->rootFolder->expects($this->never())
 			->method('getUserFolder');
+
+		$share = $this->createMock(IShare::class);
+		$share->method('getSharedWith')->willReturn('ROOMTOKEN');
+		$share->method('getToken')->willReturn('SHARETOKEN');
+
+		$this->shareProvider->expects($this->once())
+			->method('getSharesByPath')
+			->with($shareFolder)
+			->willReturn([$share]);
 
 		$this->previewManager->expects($this->once())
 			->method('isMimeSupported')
@@ -1245,7 +1262,7 @@ class SystemMessageTest extends TestCase {
 
 		$this->url->expects($this->once())
 			->method('linkToRouteAbsolute')
-			->with('files.viewcontroller.showFile', ['fileid' => 42])
+			->with('files_sharing.sharecontroller.showShare', ['token' => 'SHARETOKEN'])
 			->willReturn('absolute-link');
 
 		$participant = $this->createMock(Participant::class);
@@ -1273,11 +1290,49 @@ class SystemMessageTest extends TestCase {
 		], self::invokePrivate($parser, 'getFileFromNodeId', [$room, $participant, 42]));
 	}
 
-	public function testGetFileFromNodeIdWithoutParticipant(): void {
+	public function testGetFileFromNodeIdForGuestWithoutMatchingShareThrows(): void {
 		$room = $this->createMock(Room::class);
+		$room->method('getToken')->willReturn('ROOMTOKEN');
+
+		$parentFolder = $this->createMock(Folder::class);
+		$parentFolder->method('getPath')->willReturn('/alice/files/somewhere');
+		$parentFolder->method('getParent')->willReturnSelf();
 
 		$node = $this->createMock(Node::class);
-		$node->expects($this->exactly(2))
+		$node->method('getParent')->willReturn($parentFolder);
+		$node->method('getPath')->willReturn('/alice/files/somewhere/photo.jpg');
+
+		$this->rootFolder->expects($this->once())
+			->method('getFirstNodeById')
+			->with(42)
+			->willReturn($node);
+
+		$this->shareProvider->expects($this->atLeastOnce())
+			->method('getSharesByPath')
+			->willReturn([]);
+
+		$participant = $this->createMock(Participant::class);
+		$attendee = Attendee::fromRow([
+			'actor_type' => 'guests',
+			'actor_id' => 'guest-hash',
+		]);
+		$participant->method('getAttendee')->willReturn($attendee);
+
+		$parser = $this->getParser();
+		$this->expectException(ShareNotFound::class);
+		self::invokePrivate($parser, 'getFileFromNodeId', [$room, $participant, 42]);
+	}
+
+	public function testGetFileFromNodeIdWithoutParticipant(): void {
+		$room = $this->createMock(Room::class);
+		$room->method('getToken')->willReturn('ROOMTOKEN');
+
+		$shareFolder = $this->createMock(Folder::class);
+		$shareFolder->method('getPath')
+			->willReturn('/alice/files/Talk/Room-ROOMTOKEN/Alice-alice');
+
+		$node = $this->createMock(Node::class);
+		$node->expects($this->once())
 			->method('getId')
 			->willReturn(42);
 		$node->expects($this->once())
@@ -1295,6 +1350,9 @@ class SystemMessageTest extends TestCase {
 		$node->expects($this->atLeastOnce())
 			->method('getMimeType')
 			->willReturn('image/jpeg');
+		$node->method('getParent')->willReturn($shareFolder);
+		$node->method('getPath')
+			->willReturn('/alice/files/Talk/Room-ROOMTOKEN/Alice-alice/photo.jpg');
 
 		$this->rootFolder->expects($this->once())
 			->method('getFirstNodeById')
@@ -1303,6 +1361,15 @@ class SystemMessageTest extends TestCase {
 
 		$this->rootFolder->expects($this->never())
 			->method('getUserFolder');
+
+		$share = $this->createMock(IShare::class);
+		$share->method('getSharedWith')->willReturn('ROOMTOKEN');
+		$share->method('getToken')->willReturn('SHARETOKEN');
+
+		$this->shareProvider->expects($this->once())
+			->method('getSharesByPath')
+			->with($shareFolder)
+			->willReturn([$share]);
 
 		$this->previewManager->expects($this->once())
 			->method('isMimeSupported')
@@ -1318,7 +1385,7 @@ class SystemMessageTest extends TestCase {
 
 		$this->url->expects($this->once())
 			->method('linkToRouteAbsolute')
-			->with('files.viewcontroller.showFile', ['fileid' => 42])
+			->with('files_sharing.sharecontroller.showShare', ['token' => 'SHARETOKEN'])
 			->willReturn('absolute-link');
 
 		$parser = $this->getParser();

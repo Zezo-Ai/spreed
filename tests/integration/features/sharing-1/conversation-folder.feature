@@ -45,6 +45,18 @@ Feature: sharing-1/conversation-folder
       | room        | actorType | actorId      | actorDisplayName         | message | messageParameters |
       | public room | users     | participant1 | participant1-displayname | {file}  | "IGNORE"          |
 
+  Scenario: Guest in public room sees a working public share link for attachments posted via conversation folder
+    Given user "participant1" creates room "public room" (v4)
+      | roomType | 3    |
+      | roomName | Public room |
+    And user "participant1" uploads file "test.txt" with content "Hello!" to conversation folder for room "public room" with name "Public room"
+    And user "participant1" posts file "test.txt" from conversation folder of room "public room" with name "Public room" with 200 (v1)
+    When user "guest" joins room "public room" with 200 (v4)
+    Then user "guest" sees the following messages in room "public room" with 200
+      | room        | actorType | actorId      | actorDisplayName         | message | messageParameters |
+      | public room | users     | participant1 | participant1-displayname | {file}  | "IGNORE"          |
+    And for user "guest" the file link of the last file message in room "public room" matches "#/index\.php/s/[A-Za-z0-9]+#"
+
   Scenario: Post with caption and as a reply
     Given user "participant1" creates room "group room" (v4)
       | roomType | 2    |
