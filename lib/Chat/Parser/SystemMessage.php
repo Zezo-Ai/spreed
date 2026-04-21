@@ -851,10 +851,18 @@ class SystemMessage implements IEventListener {
 		} elseif ($participant && $room->getType() !== Room::TYPE_PUBLIC && $participant->getAttendee()->getActorType() === Attendee::ACTOR_FEDERATED_USERS) {
 			throw new ShareNotFound();
 		} else {
-			// Guest / public room path: load via the owner's root folder.
-			// Without a per-file share we cannot look up a share token, so
-			// guests will see the file as unavailable.
-			throw new ShareNotFound();
+			$node = $this->rootFolder->getFirstNodeById($nodeId);
+			if (!$node instanceof Node) {
+				throw new NotFoundException('File node ' . $nodeId . ' not found');
+			}
+
+			$name = $node->getName();
+			$size = $node->getSize();
+			$path = $name;
+
+			$url = $this->url->linkToRouteAbsolute('files.viewcontroller.showFile', [
+				'fileid' => $node->getId(),
+			]);
 		}
 
 		$fileId = $node->getId();
