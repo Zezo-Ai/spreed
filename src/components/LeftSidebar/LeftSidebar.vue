@@ -249,9 +249,6 @@
 							</template>
 							{{ t('spreed', 'Back to conversations') }}
 						</LeftSidebarButton>
-						<NcAppNavigationCaption
-							class="navigation-caption"
-							:name="showArchived ? t('spreed', 'Archived conversations') : t('spreed', 'Threads')" />
 					</template>
 					<LeftSidebarButton
 						v-else-if="supportThreads && !showThreadsList && !isSearching && !isFiltered"
@@ -272,6 +269,20 @@
 							<NcCounterBubble type="highlighted" :count="pendingInvitationsCount" />
 						</template>
 					</LeftSidebarButton>
+				</div>
+
+				<div v-if="!isSearching" class="navigation-buttons-container" :class="{ 'hidden-visually': !showArchived && !showThreadsList }">
+					<div
+						:id="LIST_HEADING_ID"
+						class="navigation-caption"
+						role="heading"
+						aria-level="3">
+						{{
+							showArchived && t('spreed', 'Archived conversations')
+								|| showThreadsList && t('spreed', 'Threads')
+								|| t('spreed', 'Conversations')
+						}}
+					</div>
 				</div>
 			</div>
 		</template>
@@ -301,7 +312,7 @@
 				</NcEmptyContent>
 				<template v-if="showThreadsList">
 					<LoadingPlaceholder v-if="!followedThreadsInitialised" type="conversations" />
-					<ul v-else class="threads-tab__list">
+					<ul v-else class="threads-tab__list" :aria-labelledby="LIST_HEADING_ID">
 						<ThreadItem
 							v-for="thread of followedThreads"
 							:key="`thread_${thread.thread.id}`"
@@ -322,6 +333,7 @@
 					v-else
 					v-show="sortedConversationsList.length > 0"
 					ref="scroller"
+					:listAriaLabelledBy="LIST_HEADING_ID"
 					:conversations="sortedConversationsList"
 					:loading="!conversationsInitialised"
 					:compact="isCompact"
@@ -395,7 +407,6 @@ import NcActionCaption from '@nextcloud/vue/components/NcActionCaption'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
-import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCaption'
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcChip from '@nextcloud/vue/components/NcChip'
@@ -506,7 +517,6 @@ export default {
 		CallPhoneDialog,
 		InvitationHandler,
 		NcAppNavigation,
-		NcAppNavigationCaption,
 		NcButton,
 		NcCounterBubble,
 		NcChip,
@@ -561,6 +571,8 @@ export default {
 		const { initializeNavigation, resetNavigation } = useArrowNavigation(leftSidebar, searchBox)
 		const isMobile = useIsMobile()
 
+		const LIST_HEADING_ID = 'left-sidebar-list-heading'
+
 		return {
 			token: useGetToken(),
 			initializeNavigation,
@@ -585,6 +597,7 @@ export default {
 			HOME_BUTTON_LABEL,
 			FILTER_LABELS,
 			SORT_LABELS,
+			LIST_HEADING_ID,
 			actorStore: useActorStore(),
 			chatExtrasStore: useChatExtrasStore(),
 			tokenStore: useTokenStore(),
@@ -1295,12 +1308,11 @@ export default {
 }
 
 .navigation-caption {
-	margin-block: var(--default-grid-baseline) !important;
-	margin-inline-start: calc(var(--default-grid-baseline) * 2);
-
-	:deep(.app-navigation-caption__name) {
-		margin: 0;
-	}
+	display: flex;
+	align-items: center;
+	padding-inline: var(--default-grid-baseline);
+	height: var(--default-clickable-area);
+	font-weight: bold;
 }
 
 .threads-tab__list {

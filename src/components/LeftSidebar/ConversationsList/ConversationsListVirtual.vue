@@ -13,6 +13,7 @@ import ConversationItem from './ConversationItem.vue'
 import { AVATAR } from '../../../constants.ts'
 
 const props = defineProps<{
+	listAriaLabelledBy?: string
 	conversations: Conversation[]
 	loading?: boolean
 	compact?: boolean
@@ -120,6 +121,7 @@ defineExpose({
 		<LoadingPlaceholder v-if="loading" type="conversations" />
 		<ul
 			v-else
+			:aria-labelledby="listAriaLabelledBy"
 			:style="wrapperProps.style">
 			<ConversationItem
 				v-for="item in list"
