@@ -219,6 +219,7 @@
 						<InvitationHandler v-if="pendingInvitationsCount" ref="invitationHandler" />
 					</div>
 					<TransitionWrapper
+						v-if="filters.length"
 						class="conversations__filters"
 						name="zoom"
 						tag="div"
