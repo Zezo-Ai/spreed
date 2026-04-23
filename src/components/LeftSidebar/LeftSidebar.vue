@@ -233,49 +233,45 @@
 				</div>
 
 				<div v-if="!isSearching" class="navigation-buttons-container">
-					<NcAppNavigationItem
-						class="navigation-item"
+					<LeftSidebarButton
 						:to="{ name: 'root' }"
-						:name="HOME_BUTTON_LABEL"
+						:active="$route.name === 'root'"
 						@click="refreshTalkDashboard">
 						<template #icon>
 							<IconHomeOutline :size="20" />
 						</template>
-					</NcAppNavigationItem>
+						{{ HOME_BUTTON_LABEL }}
+					</LeftSidebarButton>
 					<template v-if="showArchived || showThreadsList">
-						<NcAppNavigationItem
-							class="navigation-item"
-							:name="t('spreed', 'Back to conversations')"
-							@click.prevent="handleBackToConversations">
+						<LeftSidebarButton @click="handleBackToConversations">
 							<template #icon>
 								<IconArrowLeft class="bidirectional-icon" :size="20" />
 							</template>
-						</NcAppNavigationItem>
+							{{ t('spreed', 'Back to conversations') }}
+						</LeftSidebarButton>
 						<NcAppNavigationCaption
 							class="navigation-caption"
 							:name="showArchived ? t('spreed', 'Archived conversations') : t('spreed', 'Threads')" />
 					</template>
-					<NcAppNavigationItem
+					<LeftSidebarButton
 						v-else-if="supportThreads && !showThreadsList && !isSearching && !isFiltered"
-						class="navigation-item"
-						:name="t('spreed', 'Threads')"
-						@click.prevent="handleShowThreadsList">
+						@click="handleShowThreadsList">
 						<template #icon>
 							<IconForumOutline :size="20" />
 						</template>
-					</NcAppNavigationItem>
-					<NcAppNavigationItem
+						{{ t('spreed', 'Threads') }}
+					</LeftSidebarButton>
+					<LeftSidebarButton
 						v-if="pendingInvitationsCount && !isSearching && !showArchived && !showThreadsList"
-						class="navigation-item"
-						:name="t('spreed', 'Pending invitations')"
-						@click.prevent="showInvitationHandler">
+						@click="showInvitationHandler">
 						<template #icon>
 							<IconAccountMultiplePlusOutline :size="20" />
 						</template>
-						<template #counter>
+						{{ t('spreed', 'Pending invitations') }}
+						<template #badge>
 							<NcCounterBubble type="highlighted" :count="pendingInvitationsCount" />
 						</template>
-					</NcAppNavigationItem>
+					</LeftSidebarButton>
 				</div>
 			</div>
 		</template>
@@ -310,16 +306,17 @@
 							v-for="thread of followedThreads"
 							:key="`thread_${thread.thread.id}`"
 							:thread="thread" />
-						<NcAppNavigationItem
-							v-if="!allFollowedThreadsReceived"
-							class="navigation-item"
-							:name="t('spreed', 'Show more threads')"
-							@click.prevent="loadMoreFollowedThreads">
+					</ul>
+					<div v-if="!allFollowedThreadsReceived" class="navigation-buttons-container">
+						<LeftSidebarButton
+							:compact="false /* ThreadItem-s are never compact */"
+							@click="loadMoreFollowedThreads">
 							<template #icon>
 								<IconForumOutline :size="20" />
 							</template>
-						</NcAppNavigationItem>
-					</ul>
+							{{ t('spreed', 'Show more threads') }}
+						</LeftSidebarButton>
+					</div>
 				</template>
 				<ConversationsListVirtual
 					v-else
@@ -357,26 +354,27 @@
 		<template #footer>
 			<div class="navigation-bottom">
 				<div class="navigation-buttons-container">
-					<NcButton
+					<LeftSidebarButton
 						v-if="supportsArchive && !isSearching && !showArchived && !showThreadsList && archivedConversationsList.length"
-						variant="tertiary"
-						wide
 						@click="showArchived = true; showThreadsList = false">
 						<template #icon>
 							<IconArchiveOutline :size="20" />
 						</template>
 						{{ t('spreed', 'Archived conversations') }}
-						<span v-if="showArchivedConversationsBubble" class="left-sidebar__settings-button-bubble">
-							⬤
-						</span>
-					</NcButton>
+						<template #badge>
+							<span v-if="showArchivedConversationsBubble" class="archived-conversations-bubble">
+								⬤
+							</span>
+						</template>
+					</LeftSidebarButton>
 
-					<NcButton variant="tertiary" wide @click="showSettings">
+					<LeftSidebarButton
+						@click="showSettings">
 						<template #icon>
 							<IconCogOutline :size="20" />
 						</template>
 						{{ t('spreed', 'App settings') }}
-					</NcButton>
+					</LeftSidebarButton>
 				</div>
 			</div>
 		</template>
@@ -432,6 +430,7 @@ import TransitionWrapper from '../UIShared/TransitionWrapper.vue'
 import CallPhoneDialog from './CallPhoneDialog/CallPhoneDialog.vue'
 import ConversationsListVirtual from './ConversationsList/ConversationsListVirtual.vue'
 import InvitationHandler from './InvitationHandler.vue'
+import LeftSidebarButton from './LeftSidebarButton.vue'
 import OpenConversationsList from './OpenConversationsList/OpenConversationsList.vue'
 import SearchConversationsResults from './SearchConversationsResults/SearchConversationsResults.vue'
 import { useArrowNavigation } from '../../composables/useArrowNavigation.js'
@@ -508,7 +507,6 @@ export default {
 		InvitationHandler,
 		NcAppNavigation,
 		NcAppNavigationCaption,
-		NcAppNavigationItem,
 		NcButton,
 		NcCounterBubble,
 		NcChip,
@@ -523,6 +521,7 @@ export default {
 		TransitionWrapper,
 		ConversationsListVirtual,
 		SearchConversationsResults,
+		LeftSidebarButton,
 		// Icons
 		IconAccountMultiplePlusOutline,
 		IconAt,
@@ -1304,30 +1303,8 @@ export default {
 	}
 }
 
-.navigation-item {
-	padding-inline: calc(var(--default-grid-baseline) * 2);
-	margin-block: var(--default-grid-baseline);
-
-	:deep(.app-navigation-entry-link) {
-		padding-inline-start: var(--default-grid-baseline);
-	}
-
-	:deep(.app-navigation-entry-icon) {
-		flex: 0 0 40px !important; // AVATAR.SIZE.DEFAULT
-	}
-
-	:deep(.app-navigation-entry__name) {
-		padding-inline-start: calc(2 * var(--default-grid-baseline));
-		font-weight: 500;
-	}
-}
-
 .threads-tab__list {
 	padding-inline: var(--default-grid-baseline);
-
-	& > .navigation-item {
-		padding-inline: var(--default-grid-baseline);
-	}
 }
 
 .unread-mention-button {
@@ -1362,7 +1339,7 @@ export default {
 	gap: var(--default-grid-baseline);
 }
 
-.left-sidebar__settings-button-bubble {
+.archived-conversations-bubble {
 	margin-inline: var(--default-grid-baseline);
 	color: var(--color-primary-element);
 }
