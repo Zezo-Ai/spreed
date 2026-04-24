@@ -24,7 +24,7 @@ import ConversationIcon from '../ConversationIcon.vue'
 import IconTalk from '../../../img/app-dark.svg?raw'
 import { useIsInCall } from '../../composables/useIsInCall.js'
 import { CONVERSATION } from '../../constants.ts'
-import { localCapabilities } from '../../services/CapabilitiesManager.ts'
+import { getTalkConfig, localCapabilities } from '../../services/CapabilitiesManager.ts'
 import { formattedTime, ONE_DAY_IN_MS } from '../../utils/formattedTime.ts'
 
 type ConversationFromEvent = Pick<Conversation, 'token' | 'type' | 'name' | 'displayName' | 'avatarVersion' | 'callStartTime' | 'hasCall'>
@@ -34,6 +34,7 @@ const props = defineProps<{
 }>()
 
 const isCalendarEnabled = localCapabilities.calendar?.webui ?? false
+const isCallEnabled = getTalkConfig('local', 'call', 'enabled')
 
 const store = useStore()
 const router = useRouter()
@@ -219,7 +220,7 @@ function handleJoin({ call }: { call: boolean }) {
 				{{ invitesLabel }}
 			</span>
 			<NcButton
-				v-if="(hasCall && !isInCall)"
+				v-if="isCallEnabled && hasCall && !isInCall"
 				variant="primary"
 				@click="handleJoin({ call: true })">
 				<template #icon>

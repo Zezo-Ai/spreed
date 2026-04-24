@@ -254,6 +254,7 @@ function scrollEventCards({ direction }: { direction: 'backward' | 'forward' }) 
 					{{ t('spreed', 'Call a phone number') }}
 				</NcButton>
 				<NcButton
+					v-if="isCallEnabled"
 					variant="secondary"
 					@click="emit('talk:media-settings:show', 'device-check')">
 					<template #icon>
