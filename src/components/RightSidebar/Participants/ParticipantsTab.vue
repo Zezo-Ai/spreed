@@ -246,7 +246,6 @@ export default {
 
 		hintAddPhones() {
 			const canModerateSipDialOut = hasTalkFeature(this.token, 'sip-support-dialout')
-				&& getTalkConfig(this.token, 'call', 'enabled')
 				&& getTalkConfig(this.token, 'call', 'sip-enabled')
 				&& getTalkConfig(this.token, 'call', 'sip-dialout-enabled')
 				&& getTalkConfig(this.token, 'call', 'can-enable-sip')

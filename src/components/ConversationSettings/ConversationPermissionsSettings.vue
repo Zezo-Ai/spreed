@@ -17,7 +17,7 @@
 		<div class="conversation-permissions-editor__setting">
 			<NcCheckboxRadioSwitch
 				v-model="radioValue"
-				:disabled="loading || !isCallEnabled"
+				:disabled="loading"
 				value="all"
 				name="permission_radio"
 				type="radio"
@@ -27,7 +27,9 @@
 			<span v-show="loading && radioValue === 'all'" class="icon-loading-small" />
 		</div>
 		<p class="conversation-permissions-editor__hint">
-			{{ t('spreed', 'Participants have permissions to start a call, join a call, enable audio and video, and share screen.') }}
+			{{ isCallEnabled
+				? t('spreed', 'Participants have permissions to start a call, join a call, enable audio and video, and share screen.')
+				: t('spreed', 'Participants can use all available features.') }}
 		</p>
 
 		<!-- No permissions -->
@@ -35,7 +37,7 @@
 			<NcCheckboxRadioSwitch
 				v-model="radioValue"
 				value="restricted"
-				:disabled="loading || !isCallEnabled"
+				:disabled="loading"
 				name="permission_radio"
 				type="radio"
 				@update:modelValue="handleSubmitPermissions">
@@ -44,7 +46,9 @@
 			<span v-show="loading && radioValue === 'restricted'" class="icon-loading-small" />
 		</div>
 		<p class="conversation-permissions-editor__hint">
-			{{ t('spreed', 'Participants can join calls, but cannot enable audio nor video nor share screen until a moderator manually grants them permissions.') }}
+			{{ isCallEnabled
+				? t('spreed', 'Participants can join calls, but cannot enable audio nor video nor share screen until a moderator manually grants them permissions.')
+				: t('spreed', 'Participants get a reduced feature set until a moderator manually grants additional permissions.') }}
 		</p>
 
 		<!-- Advanced permissions -->
@@ -194,10 +198,6 @@ export default {
 		 * which case it's a number indicating the permissions value.
 		 */
 		async handleSubmitPermissions(value) {
-			if (!this.isCallEnabled && ['all', 'restricted'].includes(value)) {
-				return
-			}
-
 			let permissions
 
 			// Compute the permissions value

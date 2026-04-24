@@ -43,7 +43,7 @@
 
 			<!-- Meeting: lobby and sip -->
 			<NcAppSettingsSection
-				v-if="isCallEnabled && canFullModerate && !isNoteToSelf"
+				v-if="canFullModerate && !isNoteToSelf"
 				id="meeting"
 				:name="meetingHeader">
 				<LobbySettings :token="token" />
@@ -208,7 +208,7 @@ export default {
 
 	computed: {
 		canUserEnableSIP() {
-			return this.isCallEnabled && this.conversation.canEnableSIP
+			return this.conversation.canEnableSIP
 		},
 
 		isCallEnabled() {
@@ -295,8 +295,7 @@ export default {
 		},
 
 		canConfigureBreakoutRooms() {
-			return this.isCallEnabled
-				&& !this.isVoiceRoom
+			return !this.isVoiceRoom
 				&& this.canFullModerate
 				&& (getTalkConfig(this.token, 'call', 'breakout-rooms') || false)
 				&& this.conversation.type === CONVERSATION.TYPE.GROUP
