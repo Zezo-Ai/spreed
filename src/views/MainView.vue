@@ -90,6 +90,11 @@ function handleDirectCall(routeToken: string) {
 	stopWatchingJoinedConversation()
 
 	const conversation = store.getters.conversation(routeToken)
+	if ([CONVERSATION.TYPE.CHANGELOG, CONVERSATION.TYPE.NOTE_TO_SELF].includes(conversation.type)) {
+		// Do not allow calls in these conversations
+		return
+	}
+
 	const showRecordingWarning = [
 		CALL.RECORDING.VIDEO_STARTING,
 		CALL.RECORDING.AUDIO_STARTING,
