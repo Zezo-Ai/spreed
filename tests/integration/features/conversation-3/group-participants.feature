@@ -2,7 +2,6 @@ Feature: conversation-3/group-participants
   Background:
     Given user "participant1" exists
     Given user "participant2" exists
-    Given user "participant3" exists
     And group "group1" exists
     And group "group2" exists
     And group "rename-group" exists
@@ -34,6 +33,7 @@ Feature: conversation-3/group-participants
       | users      | participant2 | 3               |
 
   Scenario: User is added to a group which is a member of a chat
+    Given user "participant3" exists
     Given user "participant1" creates room "room" (v4)
       | roomType | 2 |
       | source | group |
@@ -206,6 +206,7 @@ Feature: conversation-3/group-participants
       | groups     | group1       | 3               |
 
   Scenario: User that was already a member is added to a group which is a member of a chat
+    Given user "participant3" exists
     Given user "participant1" creates room "room" (v4)
       | roomType | 2 |
       | source | group |
@@ -226,6 +227,7 @@ Feature: conversation-3/group-participants
       | users      | participant3 | 3               |
 
   Scenario: User that was self-joined is added to a group which is a member of a chat
+    Given user "participant3" exists
     Given user "participant1" creates room "room" (v4)
       | roomType | 3 |
       | roomName | room |

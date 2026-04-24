@@ -2,10 +2,8 @@ Feature: chat-4/system-messages
   Background:
     Given user "participant1" exists
     Given user "participant2" exists
-    Given user "participant3" exists
     And group "attendees1" exists
     And user "participant2" is member of group "attendees1"
-    And user "participant3" is member of group "attendees1"
 
   Scenario: Creating an empty room
     When user "participant1" creates room "room" (v4)
@@ -85,7 +83,6 @@ Feature: chat-4/system-messages
       | invite   | attendees1 |
     Then user "participant1" sees the following system messages in room "room" with 200
       | room | actorType | actorId      | actorDisplayName         | systemMessage |
-      | room | users     | participant1 | participant1-displayname | user_added |
       | room | users     | participant1 | participant1-displayname | user_added |
       | room | users     | participant1 | participant1-displayname | group_added |
       | room | users     | participant1 | participant1-displayname | conversation_created |
@@ -179,6 +176,8 @@ Feature: chat-4/system-messages
       | room | users     | participant1 | participant1-displayname | conversation_created |
 
   Scenario: Ending call for all
+    Given user "participant3" exists
+    And user "participant3" is member of group "attendees1"
     Given user "participant1" creates room "room" (v4)
       | roomType | 3 |
       | roomName | room |
