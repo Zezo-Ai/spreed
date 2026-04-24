@@ -3,8 +3,6 @@ Feature: conversation-2/files
   Background:
     Given user "participant1" exists
     Given user "participant2" exists
-    And group "group1" exists
-    And user "participant2" is member of group "group1"
 
   # When "user XXX gets the room for path YYY with 200" succeeds the room token
   # can later be used by any participant using the "file YYY room" identifier.
@@ -65,6 +63,8 @@ Feature: conversation-2/files
 
 
   Scenario: get room for file shared with group
+    Given group "group1" exists
+    And user "participant2" is member of group "group1"
     Given user "participant1" shares "welcome.txt" with group "group1" with OCS 100
     And user "participant2" accepts last share
     When user "participant1" gets the room for path "welcome.txt" with 200 (v1)
@@ -73,6 +73,8 @@ Feature: conversation-2/files
     And user "participant2" is not participant of room "file welcome (2).txt room" (v4)
 
   Scenario: get room for file shared with user and group
+    Given group "group1" exists
+    And user "participant2" is member of group "group1"
     Given user "participant3" exists
     Given user "participant1" shares "welcome.txt" with group "group1" with OCS 100
     And user "participant2" accepts last share
@@ -273,6 +275,8 @@ Feature: conversation-2/files
 
 
   Scenario: join room for file shared with group
+    Given group "group1" exists
+    And user "participant2" is member of group "group1"
     Given user "participant1" shares "welcome.txt" with group "group1" with OCS 100
     And user "participant2" accepts last share
     And user "participant1" gets the room for path "welcome.txt" with 200 (v1)
@@ -283,6 +287,8 @@ Feature: conversation-2/files
     And user "participant2" is participant of room "file welcome (2).txt room" (v4)
 
   Scenario: join room for file shared with user and group
+    Given group "group1" exists
+    And user "participant2" is member of group "group1"
     Given user "participant3" exists
     Given user "participant1" shares "welcome.txt" with group "group1" with OCS 100
     And user "participant2" accepts last share

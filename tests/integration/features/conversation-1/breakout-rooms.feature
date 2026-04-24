@@ -2,7 +2,6 @@ Feature: conversation-1/breakout-rooms
   Background:
     Given user "participant1" exists
     Given user "participant2" exists
-    Given group "group1" exists
 
   Scenario: Teacher creates manual breakout rooms
     Given user "participant3" exists
@@ -764,6 +763,7 @@ Feature: conversation-1/breakout-rooms
     # Can not "move" moderators
     When user "participant1" adds user "participant2" to room "Room 2" with 400 (v4)
     # Can not "add" groups
+    Given group "group1" exists
     When user "participant1" adds group "group1" to room "Room 2" with 400 (v4)
 
   Scenario: Teacher applies a new attendee map

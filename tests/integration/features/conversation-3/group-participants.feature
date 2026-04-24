@@ -3,8 +3,6 @@ Feature: conversation-3/group-participants
     Given user "participant1" exists
     Given user "participant2" exists
     And group "group1" exists
-    And group "group2" exists
-    And group "rename-group" exists
     And user "participant2" is member of group "group1"
 
   Scenario: Owner invites a group
@@ -72,6 +70,7 @@ Feature: conversation-3/group-participants
       | roomType | 2 |
       | source | group |
       | invite |group1 |
+    And group "group2" exists
     And user "participant2" is member of group "group2"
     And user "participant1" sees the following attendees in room "room" with 200 (v4)
       | actorType  | actorId      | participantType |
@@ -98,6 +97,7 @@ Feature: conversation-3/group-participants
       | roomType | 2 |
       | source | group |
       | invite |group1 |
+    And group "group2" exists
     And user "participant2" is member of group "group2"
     And user "participant1" sees the following attendees in room "room" with 200 (v4)
       | actorType  | actorId      | participantType |
@@ -270,6 +270,7 @@ Feature: conversation-3/group-participants
     Given user "participant1" creates room "room" (v4)
       | roomType | 3 |
       | roomName | room |
+    And group "rename-group" exists
     And user "participant1" adds group "rename-group" to room "room" with 200 (v4)
     And user "participant1" sees the following attendees in room "room" with 200 (v4)
       | actorType  | actorId      | participantType | displayName              |

@@ -1,7 +1,6 @@
 Feature: conversation-5/bruteforce-protection
   Background:
     Given user "participant2" exists
-    Given group "group1" exists
 
   # Does not log an attempt but shows the password form
   Scenario: User opens the call/{token} URL of a password protected public room
