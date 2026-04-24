@@ -16,6 +16,7 @@
 				<form @submit.prevent="handleSubmitPermissions">
 					<NcCheckboxRadioSwitch
 						v-model="callStart"
+						:disabled="!isCallEnabled"
 						class="checkbox">
 						{{ t('spreed', 'Start a call') }}
 					</NcCheckboxRadioSwitch>
@@ -37,16 +38,19 @@
 					</NcCheckboxRadioSwitch>
 					<NcCheckboxRadioSwitch
 						v-model="publishAudio"
+						:disabled="!isCallEnabled"
 						class="checkbox">
 						{{ t('spreed', 'Enable the microphone') }}
 					</NcCheckboxRadioSwitch>
 					<NcCheckboxRadioSwitch
 						v-model="publishVideo"
+						:disabled="!isCallEnabled"
 						class="checkbox">
 						{{ t('spreed', 'Enable the camera') }}
 					</NcCheckboxRadioSwitch>
 					<NcCheckboxRadioSwitch
 						v-model="publishScreen"
+						:disabled="!isCallEnabled"
 						class="checkbox">
 						{{ t('spreed', 'Share the screen') }}
 					</NcCheckboxRadioSwitch>
@@ -123,6 +127,11 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+
+		token: {
+			type: String,
+			default: 'local',
+		},
 	},
 
 	emits: ['close', 'submit'],
@@ -177,6 +186,18 @@ export default {
 			return hasTalkFeature('local', 'react-permission')
 		},
 
+		isCallEnabled() {
+			return getTalkConfig(this.token, 'call', 'enabled')
+		},
+
+		callPermissions() {
+			return PERMISSIONS.CALL_START
+				| PERMISSIONS.CALL_JOIN
+				| PERMISSIONS.PUBLISH_AUDIO
+				| PERMISSIONS.PUBLISH_VIDEO
+				| PERMISSIONS.PUBLISH_SCREEN
+		},
+
 		maxDefaultPermission() {
 			// Use API value if available, otherwise compute from constants
 			const apiValue = getTalkConfig('local', 'permissions', 'max-default')
@@ -217,14 +238,18 @@ export default {
 		 * accordingly.
 		 */
 		formPermissions() {
-			return (this.callStart ? PERMISSIONS.CALL_START : 0)
+			const callPermissions = this.isCallEnabled
+				? (this.callStart ? PERMISSIONS.CALL_START : 0)
 				| PERMISSIONS.CALL_JOIN // Currently not handled, just adding it, so that manually selecting all checkboxes goes to the "All" permissions state
-				| (this.lobbyIgnore ? PERMISSIONS.LOBBY_IGNORE : 0)
-				| (this.chatMessages ? PERMISSIONS.CHAT : 0)
-				| ((this.hasReactPermissions && this.chatReactions) ? PERMISSIONS.REACT : 0)
 				| (this.publishAudio ? PERMISSIONS.PUBLISH_AUDIO : 0)
 				| (this.publishVideo ? PERMISSIONS.PUBLISH_VIDEO : 0)
 				| (this.publishScreen ? PERMISSIONS.PUBLISH_SCREEN : 0)
+				: this.permissionsWithDefault & this.callPermissions
+
+			return callPermissions
+				| (this.lobbyIgnore ? PERMISSIONS.LOBBY_IGNORE : 0)
+				| (this.chatMessages ? PERMISSIONS.CHAT : 0)
+				| ((this.hasReactPermissions && this.chatReactions) ? PERMISSIONS.REACT : 0)
 				| PERMISSIONS.CUSTOM
 		},
 

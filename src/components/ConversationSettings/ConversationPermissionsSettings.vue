@@ -17,7 +17,7 @@
 		<div class="conversation-permissions-editor__setting">
 			<NcCheckboxRadioSwitch
 				v-model="radioValue"
-				:disabled="loading"
+				:disabled="loading || !isCallEnabled"
 				value="all"
 				name="permission_radio"
 				type="radio"
@@ -35,7 +35,7 @@
 			<NcCheckboxRadioSwitch
 				v-model="radioValue"
 				value="restricted"
-				:disabled="loading"
+				:disabled="loading || !isCallEnabled"
 				name="permission_radio"
 				type="radio"
 				@update:modelValue="handleSubmitPermissions">
@@ -76,6 +76,7 @@
 			:conversationName="conversationName"
 			:permissions="conversationPermissions"
 			:loading="loading"
+			:token="token"
 			nestedContainer=".conversation-permissions-editor"
 			@close="handleClosePermissionsEditor"
 			@submit="handleSubmitPermissions" />
@@ -148,6 +149,10 @@ export default {
 			return hasTalkFeature(this.token, 'react-permission')
 		},
 
+		isCallEnabled() {
+			return getTalkConfig(this.token, 'call', 'enabled')
+		},
+
 		maxDefaultPermission() {
 			const apiValue = getTalkConfig(this.token, 'permissions', 'max-default')
 			if (apiValue !== undefined) {
@@ -189,6 +194,10 @@ export default {
 		 * which case it's a number indicating the permissions value.
 		 */
 		async handleSubmitPermissions(value) {
+			if (!this.isCallEnabled && ['all', 'restricted'].includes(value)) {
+				return
+			}
+
 			let permissions
 
 			// Compute the permissions value
