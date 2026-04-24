@@ -336,7 +336,8 @@ export default {
 		},
 
 		showSIPSettings() {
-			return this.conversation.sipEnabled !== WEBINAR.SIP.DISABLED
+			return getTalkConfig(this.token, 'call', 'enabled')
+				&& this.conversation.sipEnabled !== WEBINAR.SIP.DISABLED
 				&& this.conversation.attendeePin
 		},
 
@@ -359,7 +360,7 @@ export default {
 		},
 
 		showBreakoutRoomsTab() {
-			return this.getUserId && !this.isOneToOne
+			return getTalkConfig(this.token, 'call', 'enabled') && this.getUserId && !this.isOneToOne
 				&& !this.conversation.remoteServer // no breakout rooms support in federated conversations
 				&& (this.breakoutRoomsConfigured || this.conversation.breakoutRoomMode === CONVERSATION.BREAKOUT_ROOM_MODE.FREE || this.conversation.objectType === CONVERSATION.OBJECT_TYPE.BREAKOUT_ROOM)
 		},

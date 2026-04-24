@@ -43,7 +43,7 @@
 
 			<!-- Meeting: lobby and sip -->
 			<NcAppSettingsSection
-				v-if="canFullModerate && !isNoteToSelf"
+				v-if="isCallEnabled && canFullModerate && !isNoteToSelf"
 				id="meeting"
 				:name="meetingHeader">
 				<LobbySettings :token="token" />
@@ -208,7 +208,11 @@ export default {
 
 	computed: {
 		canUserEnableSIP() {
-			return this.conversation.canEnableSIP
+			return this.isCallEnabled && this.conversation.canEnableSIP
+		},
+
+		isCallEnabled() {
+			return getTalkConfig(this.token, 'call', 'enabled')
 		},
 
 		isNoteToSelf() {
@@ -278,25 +282,29 @@ export default {
 		},
 
 		canConfigureLiveTranscription() {
-			return this.isLiveTranscriptionSupported
+			return this.isCallEnabled
+				&& this.isLiveTranscriptionSupported
 				&& this.selfIsOwnerOrModerator
 		},
 
 		hintLiveTranscription() {
-			return !this.isLiveTranscriptionSupported
+			return this.isCallEnabled
+				&& !this.isLiveTranscriptionSupported
 				&& this.selfIsOwnerOrModerator
 				&& showTalkFeatureHint(34)
 		},
 
 		canConfigureBreakoutRooms() {
-			return !this.isVoiceRoom
+			return this.isCallEnabled
+				&& !this.isVoiceRoom
 				&& this.canFullModerate
 				&& (getTalkConfig(this.token, 'call', 'breakout-rooms') || false)
 				&& this.conversation.type === CONVERSATION.TYPE.GROUP
 		},
 
 		recordingConsentAvailable() {
-			return (getTalkConfig(this.token, 'call', 'recording') || false)
+			return this.isCallEnabled
+				&& (getTalkConfig(this.token, 'call', 'recording') || false)
 				&& hasTalkFeature(this.token, 'recording-consent')
 				&& getTalkConfig(this.token, 'call', 'recording-consent') !== CONFIG.RECORDING_CONSENT.OFF
 		},
