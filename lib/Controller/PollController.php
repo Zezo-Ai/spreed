@@ -35,6 +35,7 @@ use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IL10N;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface;
 
@@ -54,6 +55,7 @@ class PollController extends AEnvironmentAwareOCSController {
 		protected ThreadService $threadService,
 		protected ITimeFactory $timeFactory,
 		protected LoggerInterface $logger,
+		protected IL10N $l,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -517,12 +519,12 @@ class PollController extends AEnvironmentAwareOCSController {
 
 		// Sanitize filename
 		$cleanedRoomName = preg_replace('/[\/\\\\:*?"<>|\- ]+/', '-', $this->room->getName());
-		$cleanedRoomName = substr($cleanedRoomName, 0, 100);
+		$cleanedRoomName = mb_substr($cleanedRoomName, 0, 100);
 		$cleanedQuestion = preg_replace('/[\/\\\\:*?"<>|\- ]+/', '-', $poll->getQuestion());
-		$cleanedQuestion = substr($cleanedQuestion, 0, 50);
+		$cleanedQuestion = mb_substr($cleanedQuestion, 0, 50);
 
 		$date = $this->timeFactory->getDateTime()->format('Y-m-d');
-		$fileName = $cleanedRoomName . ' - Poll - ' . $cleanedQuestion . ' - ' . $date . '.' . $format;
+		$fileName = $cleanedRoomName . ' - ' . $this->l->t('Poll') . ' - ' . $cleanedQuestion . ' - ' . $date . '.' . $format;
 
 		$mimeType = match ($format) {
 			'csv' => 'text/csv',
