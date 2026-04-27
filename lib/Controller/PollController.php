@@ -474,8 +474,8 @@ class PollController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param int $pollId ID of the poll
 	 * @psalm-param non-negative-int $pollId
-	 * @param 'xlsx'|'ods'|'csv'|'tsv' $format Export format
-	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'|'application/vnd.oasis.opendocument.spreadsheet'|'text/csv'|'text/tab-separated-values', array{}>|DataResponse<Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @param 'ods'|'csv' $format Export format
+	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/vnd.oasis.opendocument.spreadsheet'|'text/csv', array{}>|DataResponse<Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 *
 	 * 200: Poll exported successfully
 	 * 403: Missing permissions to export poll
