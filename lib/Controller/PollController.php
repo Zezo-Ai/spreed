@@ -30,7 +30,6 @@ use OCA\Talk\Service\ThreadService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataDownloadResponse;
@@ -483,7 +482,6 @@ class PollController extends AEnvironmentAwareOCSController {
 	 * 404: Poll not found
 	 */
 	#[PublicPage]
-	#[NoCSRFRequired]
 	#[RequireModeratorOrNoLobby]
 	#[RequireParticipant]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/poll/{token}/{pollId}/export/{format}', requirements: [
