@@ -4,19 +4,144 @@
 -->
 
 <script setup lang="ts">
-import type { Conversation } from '../../../types/index.ts'
+import type { Conversation, ConversationTag } from '../../../types/index.ts'
+import type { TagHeaderItem } from './ConversationTagHeader.vue'
 
 import { useVirtualList } from '@vueuse/core'
 import { computed, toRef } from 'vue'
 import LoadingPlaceholder from '../../UIShared/LoadingPlaceholder.vue'
 import ConversationItem from './ConversationItem.vue'
+import ConversationTagHeader from './ConversationTagHeader.vue'
 import { AVATAR } from '../../../constants.ts'
+import { useConversationTagsStore } from '../../../stores/conversationTags.ts'
+
+export type VirtualListItem = (Conversation | TagHeaderItem) & { _key?: string }
 
 const props = defineProps<{
 	conversations: Conversation[]
 	loading?: boolean
 	compact?: boolean
+	/**
+	 * When true, conversations are split into tag sections defined by the server.
+	 * Requires hasCustomTags to be true; otherwise renders a plain list.
+	 */
+	showTags?: boolean
 }>()
+
+const tagsStore = useConversationTagsStore()
+
+/**
+ * Type guard to check if a list item is a tag header
+ *
+ * @param item The list item to check
+ */
+function isTagHeader(item: VirtualListItem): item is TagHeaderItem {
+	return '_type' in item && item._type === 'tag-header'
+}
+
+/**
+ * Build the flat list that is fed to the virtual scroller.
+ * When showTags is true and custom tags exist, conversations are interspersed
+ * with tag-header sentinel items so the virtual list can render section headers.
+ */
+const listItems = computed<VirtualListItem[]>(() => {
+	if (!props.showTags || !tagsStore.hasCustomTags) {
+		return props.conversations
+	}
+
+	const groupedConversations = props.conversations.reduce<{
+		hasTagged: boolean
+		favorites: Conversation[]
+		favoritesUnreadCount: number
+		tagged: Record<string, Conversation[]>
+		taggedUnreadCount: Record<string, number>
+		other: Conversation[]
+		otherUnreadCount: number
+	}>((acc, conversation) => {
+		const unreadCount = conversation.unreadMessages || 0
+		const isTagged = !!conversation.tagIds?.length
+
+		if (conversation.isFavorite) {
+			acc.favorites.push(conversation)
+			acc.favoritesUnreadCount += unreadCount
+		} else if (!isTagged) {
+			acc.other.push(conversation)
+			acc.otherUnreadCount += unreadCount
+		}
+
+		if (isTagged) {
+			acc.hasTagged = true
+		} else {
+			return acc
+		}
+
+		for (const tagId of conversation.tagIds) {
+			acc.tagged[tagId] ??= []
+			acc.tagged[tagId].push(conversation)
+			acc.taggedUnreadCount[tagId] = (acc.taggedUnreadCount[tagId] || 0) + unreadCount
+		}
+		return acc
+	}, {
+		hasTagged: false,
+		favorites: [],
+		favoritesUnreadCount: 0,
+		tagged: {},
+		taggedUnreadCount: {},
+		other: [],
+		otherUnreadCount: 0,
+	})
+
+	if (!groupedConversations.hasTagged) {
+		return props.conversations
+	}
+
+	const sections = tagsStore.sortedTags.reduce<Array<{
+		tag: ConversationTag
+		conversations: Conversation[]
+		unreadCount: number
+	}>>((acc, tag) => {
+		const conversations = tag.type === 'favorites'
+			? groupedConversations.favorites
+			: tag.type === 'other'
+				? groupedConversations.other
+				: (groupedConversations.tagged[tag.id] ?? [])
+
+		if (conversations.length === 0) {
+			return acc
+		}
+
+		const unreadCount = tag.type === 'favorites'
+			? groupedConversations.favoritesUnreadCount
+			: tag.type === 'other'
+				? groupedConversations.otherUnreadCount
+				: (groupedConversations.taggedUnreadCount[tag.id] ?? 0)
+
+		acc.push({
+			tag,
+			conversations,
+			unreadCount,
+		})
+		return acc
+	}, [])
+
+	return sections.reduce<VirtualListItem[]>((acc, section, index, renderedSections) => {
+		const header: TagHeaderItem = {
+			...section.tag,
+			_type: 'tag-header',
+			unreadCount: section.unreadCount,
+			isFirst: index === 0,
+			isLast: index === renderedSections.length - 1,
+		}
+
+		acc.push(header)
+		if (section.tag.collapsed) {
+			return acc
+		}
+
+		acc.push(...section.conversations.map((conversation) => ({ ...conversation, _key: `${section.tag.id}:${conversation.token}` })))
+		return acc
+	}, [])
+})
 
 /**
  * Consider:
@@ -26,7 +151,7 @@ const props = defineProps<{
  */
 const itemHeight = computed(() => props.compact ? 28 + 2 * 2 : AVATAR.SIZE.DEFAULT + 2 * 4 + 2 * 2)
 
-const { list, containerProps, wrapperProps } = useVirtualList<Conversation>(toRef(() => props.conversations), {
+const { list, containerProps, wrapperProps } = useVirtualList<VirtualListItem>(listItems, {
 	itemHeight: () => itemHeight.value,
 	overscan: 10,
 })
@@ -98,7 +223,7 @@ function scrollToItem(index: number) {
  * @param token - token of conversation to scroll to
  */
 function scrollToConversation(token: string) {
-	const index = props.conversations.findIndex((conversation) => conversation.token === token)
+	const index = listItems.value.findIndex((item) => !isTagHeader(item) && item.token === token)
 	if (index !== -1) {
 		scrollToItem(index)
 	}
@@ -121,11 +246,15 @@ defineExpose({
 		<ul
 			v-else
 			:style="wrapperProps.style">
-			<ConversationItem
-				v-for="item in list"
-				:key="item.data.id"
-				:item="item.data"
-				:compact />
+			<template v-for="item in list" :key="item.data._key ?? item.data.id">
+				<ConversationTagHeader
+					v-if="isTagHeader(item.data)"
+					:item="item.data as TagHeaderItem" />
+				<ConversationItem
+					v-else
+					:item="item.data as Conversation"
+					:compact />
+			</template>
 		</ul>
 	</li>
 </template>
