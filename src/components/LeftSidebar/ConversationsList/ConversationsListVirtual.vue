@@ -150,38 +150,109 @@ const listItems = computed<VirtualListItem[]>(() => {
  * list-item__wrapper padding
  */
 const itemHeight = computed(() => props.compact ? 28 + 2 * 2 : AVATAR.SIZE.DEFAULT + 2 * 4 + 2 * 2)
+const headerItemHeight = 34
+
+/**
+ * Get the rendered height for the item at the given virtual-list index.
+ *
+ * @param index - index of the item in the flattened virtual list
+ */
+function getItemHeight(index: number): number {
+	const item = listItems.value[index]
+	return item && isTagHeader(item) ? headerItemHeight : itemHeight.value
+}
 
 const { list, containerProps, wrapperProps } = useVirtualList<VirtualListItem>(listItems, {
-	itemHeight: () => itemHeight.value,
+	itemHeight: getItemHeight,
 	overscan: 10,
 })
 
 /**
- * Get an index of the first fully visible conversation in viewport
- * Math.ceil to include partially of (absolute number of items above viewport) + 1 (next item is in viewport) - 1 (index starts from 0)
+ * Get the index of the first fully visible virtual-list item in the viewport.
  */
 function getFirstItemInViewportIndex(): number {
-	return Math.ceil(containerProps.ref.value!.scrollTop / itemHeight.value)
+	const container = containerProps.ref.value
+	if (!container || listItems.value.length === 0) {
+		return 0
+	}
+
+	const scrollTop = container.scrollTop
+	let offset = 0
+	for (let i = 0; i < listItems.value.length; i++) {
+		const top = offset
+		const bottom = top + getItemHeight(i)
+		if (top >= scrollTop) {
+			return i
+		}
+		if (bottom > scrollTop) {
+			return Math.min(i + 1, listItems.value.length - 1)
+		}
+		offset = bottom
+	}
+
+	return listItems.value.length - 1
 }
 
 /**
- * Get an index of the last fully visible conversation in viewport
- * Math.floor to include only fully visible of (absolute number of items below and in viewport) - 1 (index starts from 0)
+ * Get the index of the last fully visible virtual-list item in the viewport.
  */
 function getLastItemInViewportIndex(): number {
-	return Math.floor((containerProps.ref.value!.scrollTop + containerProps.ref.value!.clientHeight) / itemHeight.value) - 1
+	const container = containerProps.ref.value
+	if (!container || listItems.value.length === 0) {
+		return -1
+	}
+
+	const scrollTop = container.scrollTop
+	const viewportBottom = scrollTop + container.clientHeight
+	let offset = 0
+	let lastVisible = -1
+
+	for (let i = 0; i < listItems.value.length; i++) {
+		const top = offset
+		const bottom = top + getItemHeight(i)
+		if (top >= scrollTop && bottom <= viewportBottom) {
+			lastVisible = i
+		}
+		if (top >= viewportBottom) {
+			break
+		}
+		offset = bottom
+	}
+
+	return lastVisible
 }
 
 /**
- * Scroll to conversation by index
+ * Get the vertical offset of the item at the given index.
  *
- * @param index - index of conversation to scroll to
+ * @param index - index of the item in the flattened virtual list
+ */
+function getItemOffset(index: number): number {
+	let offset = 0
+	for (let i = 0; i < index; i++) {
+		offset += getItemHeight(i)
+	}
+	return offset
+}
+
+/**
+ * Scroll to the item at the given virtual-list index.
+ *
+ * @param index - index of the item to scroll to
  */
 function scrollToItem(index: number) {
+	const container = containerProps.ref.value
+	if (!container) {
+		return
+	}
+
 	const firstItemIndex = getFirstItemInViewportIndex()
 	const lastItemIndex = getLastItemInViewportIndex()
 
-	const viewportHeight = containerProps.ref.value!.clientHeight
+	const viewportHeight = container.clientHeight
+	const itemTop = getItemOffset(index)
+	const itemHeight = getItemHeight(index)
+	const itemBottom = itemTop + itemHeight
 
 	/**
 	 * Scroll to a position with smooth scroll imitation
@@ -190,30 +261,30 @@ function scrollToItem(index: number) {
 	 */
 	const doScroll = (to: number) => {
 		const ITEMS_TO_BORDER_AFTER_SCROLL = 1
-		const padding = ITEMS_TO_BORDER_AFTER_SCROLL * itemHeight.value
-		const from = containerProps.ref.value!.scrollTop
+		const padding = ITEMS_TO_BORDER_AFTER_SCROLL * itemHeight
+		const from = container.scrollTop
 		const direction = from < to ? 1 : -1
 
 		// If we are far from the target - instantly scroll to a close position
 		if (Math.abs(from - to) > viewportHeight) {
-			containerProps.ref.value!.scrollTo({
+			container.scrollTo({
 				top: to - direction * viewportHeight,
 				behavior: 'instant',
 			})
 		}
 
 		// Scroll to the target with smooth scroll
-		containerProps.ref.value!.scrollTo({
+		container.scrollTo({
 			top: to + padding * direction,
 			behavior: 'smooth',
 		})
 	}
 
 	if (index < firstItemIndex) { // Item is above
-		doScroll(index * itemHeight.value)
+		doScroll(itemTop)
 	} else if (index > lastItemIndex) { // Item is below
 		// Position of item + item's height and move to bottom
-		doScroll((index + 1) * itemHeight.value - viewportHeight)
+		doScroll(itemBottom - viewportHeight)
 	}
 }
 
