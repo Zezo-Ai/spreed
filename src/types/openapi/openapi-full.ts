@@ -9081,7 +9081,7 @@ export interface operations {
                 /** @description ID of the poll */
                 pollId: number;
                 /** @description Export format */
-                format: "xlsx" | "ods" | "csv" | "tsv";
+                format: "ods" | "csv";
             };
             cookie?: never;
         };
@@ -9093,10 +9093,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                     "application/vnd.oasis.opendocument.spreadsheet": string;
                     "text/csv": string;
-                    "text/tab-separated-values": string;
                 };
             };
             /** @description Missing permissions to export poll */

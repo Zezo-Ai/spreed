@@ -15996,10 +15996,8 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "xlsx",
                                 "ods",
-                                "csv",
-                                "tsv"
+                                "csv"
                             ],
                             "pattern": "^(ods|csv)$"
                         }
@@ -16019,12 +16017,6 @@
                     "200": {
                         "description": "Poll exported successfully",
                         "content": {
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            },
                             "application/vnd.oasis.opendocument.spreadsheet": {
                                 "schema": {
                                     "type": "string",
@@ -16032,12 +16024,6 @@
                                 }
                             },
                             "text/csv": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            },
-                            "text/tab-separated-values": {
                                 "schema": {
                                     "type": "string",
                                     "format": "binary"
