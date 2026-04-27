@@ -178,33 +178,33 @@ class PollExportService {
 		$options = json_decode($poll->getOptions(), true, 512, JSON_THROW_ON_ERROR);
 		$voteData = json_decode($poll->getVotes(), true, 512, JSON_THROW_ON_ERROR);
 		$numVoters = $poll->getNumVoters();
-		$statusStr = $poll->getStatus() === Poll::STATUS_CLOSED ? 'Closed' : 'Open';
+		$statusStr = $poll->getStatus() === Poll::STATUS_CLOSED ? 'closed' : 'open';
 		$hasDetails = !empty($votes);
 
 		$output = fopen('php://memory', 'r+');
 
 		// Summary section
-		fputcsv($output, ['Question', $this->escapeFormulae($poll->getQuestion())], escape: '\\');
-		fputcsv($output, ['Total voters', (string)$numVoters], escape: '\\');
-		fputcsv($output, ['Status', $statusStr], escape: '\\');
-		fputcsv($output, [], escape: '\\');
+		fputcsv($output, ['question', $this->escapeFormulae($poll->getQuestion())], escape: '');
+		fputcsv($output, ['total-voters', (string)$numVoters], escape: '');
+		fputcsv($output, ['status', $statusStr], escape: '');
+		fputcsv($output, [], escape: '');
 
 		// Options table
-		fputcsv($output, ['Option', 'Votes', 'Percentage'], escape: '\\');
+		fputcsv($output, ['option', 'votes', 'percentage'], escape: '');
 		foreach ($options as $index => $option) {
 			$count = $voteData[$index] ?? 0;
 			$percentage = $numVoters > 0 ? round(($count / $numVoters) * 100, 1) : 0;
-			fputcsv($output, [$this->escapeFormulae($option), (string)$count, (string)$percentage], escape: '\\');
+			fputcsv($output, [$this->escapeFormulae($option), (string)$count, (string)$percentage], escape: '');
 		}
 
 		// Voter details section
 		if ($hasDetails) {
-			fputcsv($output, [], escape: '\\');
-			fputcsv($output, ['Voter', 'Option'], escape: '\\');
+			fputcsv($output, [], escape: '');
+			fputcsv($output, ['voter', 'option'], escape: '');
 			foreach ($votes as $vote) {
 				$voterName = $vote->getDisplayName() ?? '';
 				$optionText = $options[$vote->getOptionId()] ?? '';
-				fputcsv($output, [$this->escapeFormulae($voterName), $this->escapeFormulae($optionText)], escape: '\\');
+				fputcsv($output, [$this->escapeFormulae($voterName), $this->escapeFormulae($optionText)], escape: '');
 			}
 		}
 

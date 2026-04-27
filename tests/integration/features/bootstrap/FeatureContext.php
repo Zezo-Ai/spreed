@@ -2540,7 +2540,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 
 		if ($format === 'csv') {
 			// Plain text format: verify it contains recognizable content
-			Assert::assertStringContainsString('Question', $body, 'Export should contain poll data');
+			Assert::assertStringContainsString('question', $body, 'Export should contain poll data');
 			return;
 		}
 

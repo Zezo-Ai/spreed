@@ -257,10 +257,10 @@ class PollExportServiceTest extends TestCase {
 		$this->assertStringContainsString('Red', $content);
 		$this->assertStringContainsString('Blue', $content);
 		$this->assertStringContainsString('Green', $content);
-		$this->assertStringContainsString('Question', $content);
-		$this->assertStringContainsString('Option', $content);
-		$this->assertStringContainsString('Votes', $content);
-		$this->assertStringContainsString('Percentage', $content);
+		$this->assertStringContainsString('question', $content);
+		$this->assertStringContainsString('option', $content);
+		$this->assertStringContainsString('votes', $content);
+		$this->assertStringContainsString('percentage', $content);
 		$this->assertStringContainsString('User One', $content);
 		$this->assertStringContainsString('User Two', $content);
 		$this->assertStringContainsString('User Three', $content);
