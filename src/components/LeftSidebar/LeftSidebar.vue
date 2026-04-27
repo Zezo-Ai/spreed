@@ -339,7 +339,7 @@
 				ref="searchResults"
 				class="scroller"
 				:searchText="searchText"
-				:contactsLoading="contactsLoading"
+				:searchResultsLoading="searchResultsLoading"
 				:conversationsList="conversationsList"
 				:searchResults="searchResults"
 				:searchResultsListedConversations="searchResultsListedConversations"
@@ -595,8 +595,7 @@ export default {
 			searchText: '',
 			searchResults: [],
 			searchResultsListedConversations: [],
-			contactsLoading: false,
-			listedConversationsLoading: false,
+			searchResultsLoading: true,
 			canStartConversations: getTalkConfig('local', 'conversations', 'can-create'),
 			cancelSearchPossibleConversations: () => {},
 			cancelSearchListedConversations: () => {},
@@ -898,8 +897,6 @@ export default {
 		},
 
 		async fetchPossibleConversations() {
-			this.contactsLoading = true
-
 			try {
 				// FIXME: move to conversationsStore
 				this.cancelSearchPossibleConversations('canceled')
@@ -922,8 +919,6 @@ export default {
 				this.searchResults = response?.data?.ocs?.data.filter((match) => {
 					return !(match.source === ATTENDEE.ACTOR_TYPE.USERS && oneToOneMap.includes(match.id))
 				}) ?? []
-
-				this.contactsLoading = false
 			} catch (exception) {
 				if (isCancel(exception)) {
 					return
@@ -935,8 +930,6 @@ export default {
 
 		async fetchListedConversations() {
 			try {
-				this.listedConversationsLoading = true
-
 				// FIXME: move to conversationsStore
 				this.cancelSearchListedConversations('canceled')
 				const { request, cancel } = CancelableRequest(searchListedConversations)
@@ -944,7 +937,6 @@ export default {
 
 				const response = await request(this.searchText)
 				this.searchResultsListedConversations = response.data.ocs.data
-				this.listedConversationsLoading = false
 			} catch (exception) {
 				if (isCancel(exception)) {
 					return
@@ -964,7 +956,9 @@ export default {
 			this.showThreadsList = false
 
 			this.resetNavigation()
+			this.searchResultsLoading = true
 			await Promise.all([this.fetchPossibleConversations(), this.fetchListedConversations()])
+			this.searchResultsLoading = false
 			this.initializeNavigation()
 		},
 
