@@ -4,7 +4,7 @@
 -->
 
 <script setup lang="ts">
-import type { ParticipantSearchResult, Conversation as TypeConversation } from '../../../types/index.ts'
+import type { Conversation, ParticipantSearchResult } from '../../../types/index.ts'
 
 import { t } from '@nextcloud/l10n'
 import { useVirtualList } from '@vueuse/core'
@@ -19,20 +19,21 @@ import ConversationItem from '../ConversationsList/ConversationItem.vue'
 import { ATTENDEE, AVATAR, CONVERSATION } from '../../../constants.ts'
 import { getTalkConfig, hasServerAppCapabilities } from '../../../services/CapabilitiesManager.ts'
 import { useSettingsStore } from '../../../stores/settings.ts'
+import { sortConversationsList } from '../../../utils/conversation.ts'
 import { getPreloadedUserStatus } from '../../../utils/userStatus.ts'
 
 const props = defineProps<{
 	searchText: string
-	conversationsList: TypeConversation[]
+	conversationsList: Conversation[]
 	contactsLoading: boolean
-	searchResultsListedConversations: TypeConversation[]
+	searchResultsListedConversations: Conversation[]
 	searchResults: ParticipantSearchResult[]
 }>()
 
 const emit = defineEmits<{
 	abortSearch: []
 	createNewConversation: [searchText: string]
-	createAndJoinConversation: [item: TypeConversation | ParticipantSearchResult]
+	createAndJoinConversation: [item: Conversation | ParticipantSearchResult]
 }>()
 
 const isCirclesEnabled = hasServerAppCapabilities('circles')
@@ -73,8 +74,8 @@ type SubListType = {
 type VirtualListItem
 	= | { type: 'caption', id: string, name: string }
 		| { type: 'hint', id: string, hint: string }
-		| { type: 'conversation', id: number, object: TypeConversation }
-		| { type: 'open_conversation', id: number, object: TypeConversation }
+		| { type: 'conversation', id: number, object: Conversation }
+		| { type: 'open_conversation', id: number, object: Conversation }
 		| { type: 'action', id: string, name: string, subname: string }
 		| { type: 'user' | 'group' | 'circle' | 'federated', id: string, object: ParticipantSearchResult, icon: Record<string, unknown> }
 
@@ -94,9 +95,10 @@ const searchResultsVirtual = computed<VirtualListItem[]>(() => {
 	if (searchResultsConversationList.length === 0) {
 		virtualList.push({ type: 'hint', id: 'hint_conversations', hint: t('spreed', 'No matches found') })
 	} else {
-		searchResultsConversationList.forEach((item: TypeConversation) => {
-			virtualList.push({ type: 'conversation', id: item.id, object: item })
-		})
+		sortConversationsList(searchResultsConversationList, settingsStore.groupMode, settingsStore.sortOrder)
+			.forEach((item: Conversation) => {
+				virtualList.push({ type: 'conversation', id: item.id, object: item })
+			})
 	}
 
 	// Add "New Conversation" option if allowed
@@ -107,7 +109,7 @@ const searchResultsVirtual = computed<VirtualListItem[]>(() => {
 	// Add open conversations section if any
 	if (props.searchResultsListedConversations.length !== 0) {
 		virtualList.push({ type: 'caption', id: 'open_conversation_caption', name: t('spreed', 'Open conversations') })
-		props.searchResultsListedConversations.forEach((item: TypeConversation) => {
+		props.searchResultsListedConversations.forEach((item: Conversation) => {
 			virtualList.push({ type: 'open_conversation', id: item.id, object: item })
 		})
 	}
