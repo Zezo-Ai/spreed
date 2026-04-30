@@ -126,7 +126,7 @@ import LoadingComponent from '../LoadingComponent.vue'
 import NewConversationContactsPage from './NewConversationContactsPage.vue'
 import NewConversationSetupPage from './NewConversationSetupPage.vue'
 import { useIsInCall } from '../../composables/useIsInCall.js'
-import { CONVERSATION } from '../../constants.ts'
+import { CONVERSATION, WEBINAR, CALL, PARTICIPANT } from '../../constants.ts'
 import { getTalkConfig } from '../../services/CapabilitiesManager.ts'
 import { copyConversationLinkToClipboard } from '../../utils/handleUrl.ts'
 
@@ -138,6 +138,14 @@ const NEW_CONVERSATION = {
 	type: CONVERSATION.TYPE.GROUP,
 	isDummyConversation: true,
 	attributes: CONVERSATION.ATTRIBUTE.NONE,
+	messageExpiration: 0,
+	readOnly: CONVERSATION.STATE.READ_WRITE,
+	lobbyState: WEBINAR.LOBBY.NONE,
+	lobbyTimer: null,
+	recordingConsent: CALL.RECORDING_CONSENT.DISABLED,
+	sipEnabled: WEBINAR.SIP.DISABLED,
+	permissions: PARTICIPANT.PERMISSIONS.DEFAULT,
+	mentionPermissions: CONVERSATION.MENTION_PERMISSIONS.EVERYONE,
 }
 const maxDescriptionLength = getTalkConfig('local', 'conversations', 'description-length') || 500
 export default {
@@ -318,6 +326,14 @@ export default {
 					password: this.password,
 					description: this.newConversation.description,
 					listable: this.listable,
+					messageExpiration: this.newConversation.messageExpiration,
+					readOnly: this.newConversation.readOnly,
+					lobbyState: this.newConversation.lobbyState,
+					lobbyTimer: this.newConversation.lobbyTimer,
+					recordingConsent: this.newConversation.recordingConsent,
+					sipEnabled: this.newConversation.sipEnabled,
+					permissions: this.newConversation.permissions,
+					mentionPermissions: this.newConversation.mentionPermissions,
 					participants: this.selectedParticipants,
 					avatar,
 					preset,
