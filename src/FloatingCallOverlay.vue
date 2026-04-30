@@ -34,7 +34,7 @@ import { useActorStore } from './stores/actor.ts'
 import { useTokenStore } from './stores/token.ts'
 import { checkBrowser } from './utils/browserCheck.ts'
 import { generateAbsoluteUrl } from './utils/handleUrl.ts'
-import { signalingKill } from './utils/webrtc/index.js'
+import { signalingKill, signalingWebRtcKill } from './utils/webrtc/index.js'
 
 const props = defineProps<{
 	token: string
@@ -103,6 +103,7 @@ function syncLeaveConversation() {
 		// We have to do this synchronously, because in unload and beforeunload
 		// Promises, async and await are prohibited.
 		signalingKill()
+		signalingWebRtcKill()
 		if (!isLeavingAfterSessionIssue.value) {
 			leaveConversationSync(props.token)
 		}
