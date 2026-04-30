@@ -58,6 +58,12 @@
 					<span class="conversation-type-selector__description">{{ option.description }}</span>
 				</button>
 			</div>
+			<p v-if="presetHiddenParameters.length" class="conversation-type-selector__summary">
+				<span>{{ t('spreed', 'Default parameters are: {parameters}', { parameters: presetHiddenParameters.join(', ') }) }}</span>
+				<span>
+					{{ t('spreed', 'These settings can be changed once the conversation is created.') }}
+				</span>
+			</p>
 		</template>
 
 		<label class="new-group-conversation__label">
@@ -103,6 +109,7 @@ import IconVolumeHighOutline from '../../../img/material-icons/volume-high-outli
 import { CONVERSATION } from '../../constants.ts'
 import { getTalkConfig, hasTalkFeature } from '../../services/CapabilitiesManager.ts'
 import { useSettingsStore } from '../../stores/settings.ts'
+import { messageExpirationOptions } from '../../utils/formattedTime.ts'
 import generatePassword from '../../utils/generatePassword.ts'
 
 const supportsAvatar = hasTalkFeature('local', 'avatar')
@@ -112,6 +119,49 @@ const maxDescriptionLength = getTalkConfig('local', 'conversations', 'descriptio
 const presetIcons = {
 	[CONVERSATION.PRESET.DEFAULT]: { icon: IconForumOutline },
 	[CONVERSATION.PRESET.VOICE_ROOM]: { svg: IconVolumeHighOutline },
+}
+
+/**
+ *
+ * @param seconds
+ */
+function formatExpiration(seconds) {
+	const duration = messageExpirationOptions.find((option) => option.id === seconds)?.label
+		?? t('spreed', 'Custom expiration time')
+	return t('spreed', 'Message expiration set: {duration}', { duration })
+}
+
+/**
+ *
+ * @param key
+ * @param value
+ */
+function formatHiddenParameter(key, value) {
+	switch (key) {
+		case 'messageExpiration':
+			return value > 0 ? formatExpiration(value) : null
+		case 'readOnly':
+			return value === 1 ? t('spreed', 'This conversation is read-only') : null
+		case 'lobbyState':
+			return value === 1 ? t('spreed', 'Enable lobby, restricting the conversation to moderators') : null
+		case 'recordingConsent':
+			return value === 1 ? t('spreed', 'Require recording consent before joining call in this conversation') : null
+		case 'sipEnabled':
+			if (value === 1) {
+				return t('spreed', 'Enable phone and SIP dial-in')
+			}
+			if (value === 2) {
+				return [
+					t('spreed', 'Enable phone and SIP dial-in'),
+					t('spreed', 'Allow to dial-in without a PIN'),
+				]
+			}
+			return null
+		case 'mentionPermissions':
+			return value === 1 ? t('spreed', 'Only moderators are allowed to mention @all') : null
+		default:
+			return null
+	}
 }
 export default {
 
@@ -218,6 +268,21 @@ export default {
 					description: preset.description,
 					...presetIcons[preset.identifier],
 				}))
+		},
+
+		presetHiddenParameters() {
+			const preset = this.settingsStore.presets.find((p) => p.identifier === this.conversationType)
+			if (!preset) {
+				return []
+			}
+			const labels = []
+			for (const [key, value] of Object.entries(preset.parameters)) {
+				const label = formatHiddenParameter(key, value)
+				if (label) {
+					labels.push(...(Array.isArray(label) ? label : [label]))
+				}
+			}
+			return labels
 		},
 
 		conversationType: {
@@ -388,6 +453,15 @@ export default {
 		color: var(--color-text-maxcontrast);
 		font-size: small;
 		font-weight: normal;
+	}
+
+	&__summary {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		margin-top: var(--default-grid-baseline);
+		color: var(--color-text-maxcontrast);
+		font-size: small;
 	}
 }
 </style>
