@@ -48,8 +48,8 @@
 					v-for="option in conversationTypeOptions"
 					:key="option.value"
 					class="conversation-type-selector__option"
-					:class="[{ 'conversation-type-selector__option--active': conversationType === option.value }]"
-					@click="conversationType = option.value">
+					:class="[{ 'conversation-type-selector__option--active': preset === option.value }]"
+					@click="preset = option.value">
 					<span class="conversation-type-selector__header">
 						<NcIconSvgWrapper v-if="option.svg" :svg="option.svg" :size="20" />
 						<component :is="option.icon" v-else-if="option.icon" :size="20" />
@@ -270,7 +270,7 @@ export default {
 		},
 
 		presetHiddenParameters() {
-			const preset = this.settingsStore.presets.find((p) => p.identifier === this.conversationType)
+			const preset = this.settingsStore.presets.find((p) => p.identifier === this.preset)
 			if (!preset) {
 				return []
 			}
@@ -284,23 +284,13 @@ export default {
 			return labels
 		},
 
-		conversationType: {
+		preset: {
 			get() {
-				const attributes = this.newConversation.attributes
-				if (attributes & CONVERSATION.ATTRIBUTE.VOICE_ROOM) {
-					return CONVERSATION.PRESET.VOICE_ROOM
-				}
-				return CONVERSATION.PRESET.DEFAULT
+				return this.newConversation.preset ?? CONVERSATION.PRESET.DEFAULT
 			},
 
 			set(preset) {
-				let attributes = this.newConversation.attributes
-				if (preset === CONVERSATION.PRESET.VOICE_ROOM) {
-					attributes |= CONVERSATION.ATTRIBUTE.VOICE_ROOM
-				} else {
-					attributes &= ~CONVERSATION.ATTRIBUTE.VOICE_ROOM
-				}
-				this.applyPresetParameters(preset, attributes)
+				this.applyPresetParameters(preset)
 			},
 		},
 
@@ -349,10 +339,17 @@ export default {
 			this.$emit('update:newConversation', { ...this.newConversation, ...data })
 		},
 
-		applyPresetParameters(preset, attributes) {
+		applyPresetParameters(preset) {
 			const parameters = this.settingsStore.presets.find((p) => p.identifier === preset)?.parameters ?? {}
 
-			const update = { attributes }
+			let attributes = this.newConversation.attributes
+			if (preset === CONVERSATION.PRESET.VOICE_ROOM) {
+				attributes |= CONVERSATION.ATTRIBUTE.VOICE_ROOM
+			} else {
+				attributes &= ~CONVERSATION.ATTRIBUTE.VOICE_ROOM
+			}
+
+			const update = { attributes, preset }
 			let nextListable = this.listable
 
 			for (const [key, value] of Object.entries(parameters)) {

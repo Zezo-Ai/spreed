@@ -126,7 +126,7 @@ import LoadingComponent from '../LoadingComponent.vue'
 import NewConversationContactsPage from './NewConversationContactsPage.vue'
 import NewConversationSetupPage from './NewConversationSetupPage.vue'
 import { useIsInCall } from '../../composables/useIsInCall.js'
-import { CONVERSATION, WEBINAR, CALL, PARTICIPANT } from '../../constants.ts'
+import { CALL, CONVERSATION, PARTICIPANT, WEBINAR } from '../../constants.ts'
 import { getTalkConfig } from '../../services/CapabilitiesManager.ts'
 import { copyConversationLinkToClipboard } from '../../utils/handleUrl.ts'
 
@@ -138,6 +138,7 @@ const NEW_CONVERSATION = {
 	type: CONVERSATION.TYPE.GROUP,
 	isDummyConversation: true,
 	attributes: CONVERSATION.ATTRIBUTE.NONE,
+	preset: CONVERSATION.PRESET.DEFAULT,
 	messageExpiration: 0,
 	readOnly: CONVERSATION.STATE.READ_WRITE,
 	lobbyState: WEBINAR.LOBBY.NONE,
@@ -319,7 +320,7 @@ export default {
 						avatar.file = await this.$refs.setupPage.$refs.conversationAvatar.getPictureFormData()
 					}
 				}
-				const preset = this.newConversation.attributes & CONVERSATION.ATTRIBUTE.VOICE_ROOM ? CONVERSATION.PRESET.VOICE_ROOM : undefined
+				const preset = this.newConversation.preset !== CONVERSATION.PRESET.DEFAULT ? this.newConversation.preset : undefined
 				const conversation = await this.$store.dispatch('createGroupConversation', {
 					roomName: this.conversationName,
 					roomType: this.isPublic ? CONVERSATION.TYPE.PUBLIC : CONVERSATION.TYPE.GROUP,
