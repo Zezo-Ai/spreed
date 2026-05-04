@@ -73,7 +73,6 @@ class TalkBackend implements ITalkBackend {
 		$this->roomService->deleteRoom($room);
 	}
 
-	#[\Override]
 	public function isAllowedToCreateConversations(): bool {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
@@ -83,7 +82,6 @@ class TalkBackend implements ITalkBackend {
 		return !$this->config->isNotAllowedToCreateConversations($user);
 	}
 
-	#[\Override]
 	public function isEnabledForUser(): bool {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
