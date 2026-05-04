@@ -58,13 +58,16 @@
 					<span class="conversation-type-selector__description">{{ option.description }}</span>
 				</button>
 			</div>
-			<p v-if="presetHiddenParameters.length" class="conversation-type-selector__summary">
-				<span>{{ t('spreed', 'Default parameters are: {parameters}', { parameters: presetHiddenParameters.join(', ') }) }}</span>
-				<span>
-					{{ t('spreed', 'These settings can be changed once the conversation is created.') }}
-				</span>
-			</p>
 		</template>
+		<div v-if="presetHiddenParameters.length" class="conversation-type-selector__summary">
+			<span>{{ t('spreed', 'Default parameters are:') }}</span>
+			<ul class="conversation-type-selector__summary-list">
+				<li v-for="parameter in presetHiddenParameters" :key="parameter">
+					{{ parameter }}
+				</li>
+			</ul>
+			<span>{{ t('spreed', 'These settings can be changed once the conversation is created.') }}</span>
+		</div>
 
 		<label class="new-group-conversation__label">
 			{{ t('spreed', 'Conversation visibility') }}
@@ -274,8 +277,12 @@ export default {
 			if (!preset) {
 				return []
 			}
+			const forcedParameters = { ...this.settingsStore.presets.find((p) => p.identifier === CONVERSATION.PRESET.FORCED)?.parameters }
 			const labels = []
 			for (const [key, value] of Object.entries(preset.parameters)) {
+				if (key in forcedParameters) {
+					continue
+				}
 				const label = formatHiddenParameter(key, value)
 				if (label) {
 					labels.push(...(Array.isArray(label) ? label : [label]))
@@ -385,7 +392,7 @@ export default {
 	&__wrapper {
 		display: flex;
 		gap: var(--default-grid-baseline);
-		align-items: flex-start;
+		align-items: flex-end;
 
 		.checkbox__label {
 			white-space: nowrap;
@@ -409,11 +416,10 @@ export default {
 }
 
 .conversation-type-selector {
-	display: flex;
-	gap: var(--default-grid-baseline);
+	display: grid;
+	grid-template-columns: repeat(2, minmax(200px, 1fr));
 
 	&__option {
-		flex: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
@@ -431,6 +437,10 @@ export default {
 
 		&--active {
 			border-color: var(--color-primary-element);
+		}
+
+		&:only-child {
+			grid-column: 1 / -1; // span a single card
 		}
 	}
 
@@ -452,12 +462,15 @@ export default {
 	}
 
 	&__summary {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
 		margin-top: var(--default-grid-baseline);
 		color: var(--color-text-maxcontrast);
 		font-size: small;
+	}
+
+	&__summary-list {
+		margin: 0;
+		padding-inline-start: calc(var(--default-grid-baseline) * 5);
+		list-style: disc;
 	}
 }
 </style>
