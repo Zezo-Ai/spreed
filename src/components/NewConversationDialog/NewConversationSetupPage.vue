@@ -260,8 +260,7 @@ export default {
 		},
 
 		conversationTypeOptions() {
-			return this.settingsStore.presets
-				.filter((preset) => preset.identifier in presetIcons)
+			return this.settingsStore.visiblePresets
 				.map((preset) => ({
 					value: preset.identifier,
 					label: preset.name,
