@@ -106,6 +106,8 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import IconForumOutline from 'vue-material-design-icons/ForumOutline.vue'
+import IconMonitorAccount from 'vue-material-design-icons/MonitorAccount.vue'
+import IconPresentation from 'vue-material-design-icons/Presentation.vue'
 import ConversationAvatarEditor from '../ConversationSettings/ConversationAvatarEditor.vue'
 import ListableSettings from '../ConversationSettings/ListableSettings.vue'
 import IconVolumeHighOutline from '../../../img/material-icons/volume-high-outline.svg?raw'
@@ -122,6 +124,8 @@ const maxDescriptionLength = getTalkConfig('local', 'conversations', 'descriptio
 const presetIcons = {
 	[CONVERSATION.PRESET.DEFAULT]: { icon: IconForumOutline },
 	[CONVERSATION.PRESET.VOICE_ROOM]: { svg: IconVolumeHighOutline },
+	[CONVERSATION.PRESET.PRESENTATION]: { icon: IconPresentation },
+	[CONVERSATION.PRESET.WEBINAR]: { icon: IconMonitorAccount },
 }
 
 /**
